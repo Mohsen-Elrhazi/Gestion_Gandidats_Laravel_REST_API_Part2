@@ -24,13 +24,20 @@ class AuthController extends Controller
         $user->password= Hash::make($request->password);
         $user->role_id= $request->role;
         $user->save();
+
+        if ($request->has('competences')) {
+            $user->competences()->attach($request->competences);
+        }
     
         $token = JWTAuth::fromUser($user);
 
         return response()->json([
             "status" => 'success',
             "message" => 'Utilisateur enregistré avec succès',
-            'access_token' => $token,
+            "competences" => [
+                $request->competences
+            ],
+            'token' => $token,
             // 'expires_in' => JWTAuth::factory()->getTTL() * 60,
         ],201);
 
@@ -43,6 +50,7 @@ class AuthController extends Controller
   }
 
     public function login(LoginRequest $request){
+        try{
         if(!$token= JWTAuth::attempt($request->only('email','password'))){
             return response()->json([
                 "status" => 'error',
@@ -50,6 +58,13 @@ class AuthController extends Controller
                 'data' => NULL
             ],401);
         }
+        }catch(\Exception $e){
+        return response()->json([
+            'status'=> 'error',
+            'message'=> $e->getMessage(),
+            'data'=> NULL
+        ]);
+    }
         
         $user= Auth::user();
         

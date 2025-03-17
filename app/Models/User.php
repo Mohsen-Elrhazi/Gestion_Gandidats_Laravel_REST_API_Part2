@@ -55,6 +55,10 @@ class User extends Authenticatable implements JWTSubject
         return $this->belongsToMany(Offre::class,'candidatures');
     }
 
+    public function competences(){
+        return $this->belongsToMany(Competence::class,'competence_user');
+    }
+
     // Méthode pour obtenir l'identifiant JWT
     public function getJWTIdentifier()
     {

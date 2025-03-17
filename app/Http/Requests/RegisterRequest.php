@@ -30,6 +30,7 @@ class RegisterRequest extends FormRequest
             'password' => 'required|min:6',
             'confirm_password' => 'required|same:password',
             'role' => 'required',
+            'competences' =>'required|array'
         ];
     }
 
@@ -45,6 +46,7 @@ class RegisterRequest extends FormRequest
             'confirm_password.required' => 'Veuillez confirmer votre mot de passe.',
             'confirm_password.same' => 'Les mots de passe ne correspondent pas.',
             'role.required' => 'Le rôle est obligatoire.',
+            'competences.required'=> 'competences est obligatoire'
         ];
     }
 
