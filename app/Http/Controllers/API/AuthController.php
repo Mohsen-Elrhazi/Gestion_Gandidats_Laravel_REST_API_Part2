@@ -11,12 +11,12 @@ use Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends Controller
 {
     public function register(RegisterRequest $request){
         try{
-            
        $user = new User();
        
         $user->name= $request->name;
@@ -24,18 +24,16 @@ class AuthController extends Controller
         $user->password= Hash::make($request->password);
         $user->role_id= $request->role;
         $user->save();
-        
     
-        
+        $token = JWTAuth::fromUser($user);
+
         return response()->json([
             "status" => 'success',
             "message" => 'Utilisateur enregistré avec succès',
-            'data' => [
-                'token'=> $user->createToken('myApp')->plainTextToken,
-                'name' => $user->name,
-                'email'=> $user->email,
-            ],
+            'access_token' => $token,
+            // 'expires_in' => JWTAuth::factory()->getTTL() * 60,
         ],201);
+
     }catch(\Exception $e){
         return response()->json([
             'status'=> 'error',
@@ -45,24 +43,22 @@ class AuthController extends Controller
   }
 
     public function login(LoginRequest $request){
-        // if(Auth::attempt(['email'=> $request->email, 'password'=> $request->password])){
-        // ou
-        if(Auth::attempt($request->only('email','password'))){
-            $user= Auth::user();
-            
+        if(!$token= JWTAuth::attempt($request->only('email','password'))){
             return response()->json([
-                "status" => 'success',
-                "message" => 'Authentification réussi',
-                 'data' => $user,
-                 'token' => $user->createToken('myApp')->plainTextToken,
-            ],200);
+                "status" => 'error',
+                "message" => 'Échec de l"authentification, vérifiez vos informations',
+                'data' => NULL
+            ],401);
         }
         
+        $user= Auth::user();
+        
         return response()->json([
-            "status" => 'error',
-            "message" => 'Échec de l"authentification, vérifiez vos informations',
-            'data' => NULL
-        ],401);
+            "status" => 'success',
+            "message" => 'Authentification réussi',
+             'data' => $user,
+             'token' => $token,
+        ],200);
     }
 
     //methode pour update profile user (request_methode: put)

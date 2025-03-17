@@ -23,11 +23,15 @@ use Illuminate\Support\Facades\Route;
 Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
 
-Route::middleware('auth:sanctum')->group(function () {
-    Route::resource('offres', OffreController::class);
-    // Route::get('/offres/userOffres', [OffreController::class, 'indexForUser']); 
-    Route::put('updateProfile', [AuthController::class, 'updateProfile']);
-    Route::post('/offres/{id}/postuler', [OffreController::class, 'postuler']);
-
-
+Route::middleware('auth:api')->group(function () {
+    // Vos routes protégées
 });
+
+// Route::middleware('auth:sanctum')->group(function () {
+//     Route::resource('offres', OffreController::class);
+//     // Route::get('/offres/userOffres', [OffreController::class, 'indexForUser']); 
+//     Route::put('updateProfile', [AuthController::class, 'updateProfile']);
+//     Route::post('/offres/{id}/postuler', [OffreController::class, 'postuler']);
+
+
+// });
