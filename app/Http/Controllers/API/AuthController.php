@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Http\Requests\UpdateProfileRequest;
+use App\Models\Competence;
 use App\Models\User;
 use Auth;
 use Illuminate\Http\Request;
@@ -28,16 +29,29 @@ class AuthController extends Controller
         if ($request->has('competences')) {
             $user->competences()->attach($request->competences);
         }
+    // recuperer les competences
+    // $competences = Competence::whereIn('id', $request->competences)->pluck('name');
+    $competences= $user->competences->map(function($competences){
+        return [
+            'id' => $competences->id,
+                'name'=> $competences->name,
+        ];
+    });
     
         $token = JWTAuth::fromUser($user);
 
         return response()->json([
             "status" => 'success',
             "message" => 'Utilisateur enregistré avec succès',
-            "competences" => [
-                $request->competences
-            ],
-            'token' => $token,
+            "data" => [
+                "user" => [
+                    "id" => $user->id,
+                    "name" => $user->name,
+                    "email" => $user->email,
+                ],
+                "competences" => $competences,
+                'token' => $token,
+            ]            
             // 'expires_in' => JWTAuth::factory()->getTTL() * 60,
         ],201);
 
