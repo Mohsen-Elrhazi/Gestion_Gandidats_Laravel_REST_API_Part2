@@ -85,10 +85,37 @@ class AuthController extends Controller
         return response()->json([
             "status" => 'success',
             "message" => 'Authentification réussi',
-             'data' => $user,
-             'token' => $token,
+            "data" => [
+                "user" => [
+                    "id" => $user->id,
+                    "name" => $user->name,
+                    "email" => $user->email,
+                ],
+                'token' => $token,
+            ]           
         ],200);
     }
+
+    // methode de refresh token
+    public function refresh()
+{
+    try {
+        $newToken = JWTAuth::refresh(JWTAuth::getToken());
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Token rafraîchi avec succès',
+            'token' => $newToken,
+        ], 200);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Impossible de rafraîchir le token',
+            'error' => $e->getMessage(), 
+        ], 401);
+    }
+}
 
     //methode pour update profile user (request_methode: put)
     public function updateProfile(UpdateProfileRequest $request){

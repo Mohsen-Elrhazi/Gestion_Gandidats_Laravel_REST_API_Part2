@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('candidatures', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('candidat_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('offre_id')->constrained()->onDelete('cascade');
             $table->string('cv_path');
             $table->timestamp('date_candidature');
