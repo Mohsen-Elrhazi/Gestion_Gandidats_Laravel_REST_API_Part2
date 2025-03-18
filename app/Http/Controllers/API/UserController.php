@@ -7,14 +7,16 @@ use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Http\Requests\UpdateProfileRequest;
 use App\Models\Competence;
+use App\Models\Profile;
 use App\Models\User;
 use Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Storage;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
-class AuthController extends Controller
+class UserController extends Controller
 {
     public function register(RegisterRequest $request){
         try{
@@ -96,7 +98,7 @@ class AuthController extends Controller
         ],200);
     }
 
-    // methode de refresh token
+    //! methode de refresh token
     public function refresh()
 {
     try {
@@ -117,21 +119,67 @@ class AuthController extends Controller
     }
 }
 
-    //methode pour update profile user (request_methode: put)
+    //!methode pour update profile user (request_methode: put)
     public function updateProfile(UpdateProfileRequest $request){
+        try{
+            
         $user= Auth::User();
 
-        if(Hash::check($request->old_password,$user->password)){
-            $user->name= $request->name;
-            $user->email= $request->email;
-            $user->password= Hash::make($request->new_password);
-
+        if(Hash::check($request->password,$user->password)){
+            if($request->has('name')){
+                $user->name= $request->name;
+            }
+            
+            if($request->has('email')){
+                $user->email= $request->email;
+            }
+            
+            if($request->has('new_password')){
+                $user->password= Hash::make($request->new_password);
+            }
+            
             $user->update();
+
+        if($user->profile){
+            $profile= $user->profile;
+        }else{
+            $profile = new Profile();
+            $profile->user_id = $user->id;
+        }
+
+        if ($request->has('telephone')) {
+            $profile->telephone = $request->telephone;
+        }
+        
+        if ($request->has('adresse')) {
+            $profile->adresse = $request->adresse;
+        }
+        
+        if ($request->has('date_naissance')) {
+            $profile->date_naissance = $request->date_naissance;
+        }
+
+
+        if ($request->hasFile('image')) {
+            // Supprimer l'ancienne image si elle existe
+            if ($profile->image && Storage::exists($profile->image)) {
+                Storage::delete($profile->image);
+            }
+
+            // Stocker la nouvelle image
+            $path = $request->file('image')->store('public/profiles');
+            $profile->image = $path;
+        }
+        
+        $user->profile()->save($profile);
         
             return response()->json([
                 "status" => 'success',
                 "message" => 'le profile a été modifié avec success',
-                'data' => $user
+                'data' => [
+                    "user" => $user,
+                    "profile" => $profile,
+                ],
             ],200);
             
          }else{
@@ -141,7 +189,14 @@ class AuthController extends Controller
                 'data' => $user
             ],400);
          }    
+    }catch(\Exception $e) {
+        return response()->json([
+            "status" => "error",
+            "message" => "une erreur survenue lors la mise a jour de profile",
+            "error" =>$e->getMessage(),
+        ], 500);
     }
+}
 
     
 }

@@ -133,7 +133,7 @@ class OffreController extends Controller
        $offre->title=$request->title;
        $offre->description=$request->description;
        $offre->location=$request->location;
-      $offre->contract_type=$request->contract_type;
+       $offre->contract_type=$request->contract_type;
 
       $offre->update();
     

@@ -24,10 +24,14 @@ class UpdateProfileRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|string|max:255',
-            'email' => 'required|email:dns,rfc|unique:users,email,'.$this->user()->id,
-            'new_password' => 'required|min:6',
-            'old_password' => 'required|min:6',
+            'name' => 'sometimes',
+            'email' => 'sometimes|email:dns,rfc|unique:users,email,'.$this->user()->id,
+            'new_password' => 'sometimes|min:6',
+            'password' => 'required',
+            'image' => 'sometimes|image|mimes:jpeg,png,jpg|max:2048',
+            'telephone' => 'sometimes|string|max:20',
+            'adresse' => 'sometimes|string',
+            'date_naissance' => 'sometimes|date'
 
         ];
     }
@@ -35,10 +39,11 @@ class UpdateProfileRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.string' => 'Le nom doit être une chaîne de caractères.',
+            // 'name.string' => 'Le nom doit être une chaîne de caractères.',
             'email.email' => 'Veuillez fournir une adresse email valide.',
             'email.unique' => 'Cet email est déjà utilisé.',
             'new_password.min' => 'Le mot de passe doit contenir au moins 6 caractères.',
+            'password.required' => 'Veuillez fournir l\'ancienne password.',
         ];
     }
 
@@ -50,4 +55,5 @@ class UpdateProfileRequest extends FormRequest
             'errors' => $validator->errors(),
         ], 422));
     }
+
 }

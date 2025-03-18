@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\API\AuthController;
+use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\API\OffreController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -18,18 +18,20 @@ use Illuminate\Support\Facades\Route;
 
 
 
-Route::post('register', [AuthController::class, 'register']);
-Route::post('login', [AuthController::class, 'login']);
+Route::post('register', [UserController::class, 'register']);
+Route::post('login', [UserController::class, 'login']);
 
 Route::middleware('auth:api')->group(function () {
-    Route::post('/refresh',[AuthController::class,'refresh']);
+    Route::post('/refresh',[UserController::class,'refresh']);
+    Route::put('/profile', [UserController::class, 'updateProfile']);
+
 //    return auth()->user();
 });
 
 // Route::middleware('auth:sanctum')->group(function () {
 //     Route::resource('offres', OffreController::class);
 //     // Route::get('/offres/userOffres', [OffreController::class, 'indexForUser']); 
-//     Route::put('updateProfile', [AuthController::class, 'updateProfile']);
+//     Route::put('updateProfile', [UserController::class, 'updateProfile']);
 //     Route::post('/offres/{id}/postuler', [OffreController::class, 'postuler']);
 
 
