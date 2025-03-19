@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\OffreController;
+use App\Http\Controllers\API\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -22,11 +23,12 @@ Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
 
 Route::middleware('auth:api')->group(function () {
-    Route::post('/refresh-token',[AuthController::class,'refresh']);
-    Route::post('/logout',[AuthController::class,'logout']);
+    Route::post('/refresh-token', [AuthController::class, 'refresh']);
+    Route::post('/logout', [AuthController::class, 'logout']);
     Route::put('/profile', [AuthController::class, 'updateProfile']);
+    Route::put('/user/profile', [UserController::class, 'updateProfile']); // Ensure this route is protected
 
-//    return auth()->user();
+    //    return auth()->user();
 });
 
 // Route::middleware('auth:sanctum')->group(function () {
