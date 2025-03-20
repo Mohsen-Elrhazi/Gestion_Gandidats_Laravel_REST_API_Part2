@@ -26,6 +26,8 @@ class AuthController extends Controller
             $user->password = Hash::make($request->password);
             $user->role_id = $request->role;
             $user->save();
+            
+            $user->profile()->create([]);
 
             // Attach competences si existent
             if ($request->has('competences')) {
@@ -59,7 +61,7 @@ class AuthController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => $e->getMessage(),
-            ], 401);
+            ], 500);
         }
     }
 
@@ -75,18 +77,19 @@ class AuthController extends Controller
             }
 
             $user = Auth::user();
-            $newToken = JWTAuth::refresh($token);
+            // $newToken = JWTAuth::refresh($token);
+            $newToken = JWTAuth::fromUser($user);
 
             return response()->json([
                 "status" => 'success',
-                "message" => 'Authentification réussie',
+                "message" => 'Authentification< réussie',
                 "data" => [
                     "user" => [
                         "id" => $user->id,
                         "name" => $user->name,
                         "email" => $user->email,
                     ],
-                    'token' => $newToken,
+                    'access_token' => $newToken,
                 ]
             ], 200);
 
@@ -114,7 +117,7 @@ class AuthController extends Controller
                 'status' => 'error',
                 'message' => 'Impossible de rafraîchir le token',
                 'error' => $e->getMessage(),
-            ], 401);
+            ], 400);
         }
     }
 
