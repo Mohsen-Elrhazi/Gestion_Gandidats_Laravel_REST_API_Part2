@@ -8,6 +8,7 @@ use App\Models\Profile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 
 class ProfileController extends Controller
 {
@@ -30,7 +31,7 @@ class ProfileController extends Controller
            $profile= $user->profile;
         }else{
             $profile= new Profile();
-            $profile->user_id=$user->id;
+            $profile->user_id= $user->id;
         }
         
         $this->authorize('update', $profile);
@@ -47,14 +48,24 @@ class ProfileController extends Controller
             
         $user->save();
         
-        $profile->telephone=$request->telephone;
-        $profile->adresse=$request->adresse;
-        $profile->date_naissance=$request->date_naissance;
-        
-        $path = $request->file('image')->store('public/profiles');
+        $profile->telephone= $request->telephone;
+        $profile->adresse= $request->adresse;
+        $profile->date_naissance= $request->date_naissance;
+
+        if ($request->hasFile('image')) {
+            // Delete the old image if it exists
+            if ($profile->image && Storage::exists($profile->image)) {
+                Storage::delete($profile->image);
+            }
+        $image=$request->file('image');
+        $path = $image->store('public/profiles');
         $profile->image = $path;
+        }
+
+    
         
-        $profile->save();
+        $user->profile()->save($profile);
+        // $profile->save();
         
         return response()->json([
             "status" => "succes",
@@ -112,6 +123,10 @@ class ProfileController extends Controller
         $profile= $user->profile;
         
         $this->authorize("delete", $profile);
+
+     if ($profile->image && Storage::exists($profile->image)) {
+        Storage::delete($profile->image);
+     }
         
         $profile->delete();
         
