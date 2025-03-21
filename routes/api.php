@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\API\AuthController;
+use App\Http\Controllers\API\CompetenceController;
 use App\Http\Controllers\API\OffreController;
+use App\Http\Controllers\API\ProfileController;
 use App\Http\Controllers\API\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -21,21 +23,13 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
+Route::post('refresh', [AuthController::class, 'refresh'])->middleware('auth:api');
+Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:api');
+
 
 Route::middleware('auth:api')->group(function () {
-    Route::post('/refresh-token', [AuthController::class, 'refresh']);
-    Route::post('/logout', [AuthController::class, 'logout']);
-    Route::put('/profile', [AuthController::class, 'updateProfile']);
-    Route::put('/user/profile', [UserController::class, 'updateProfile']); // Ensure this route is protected
-
-    //    return auth()->user();
+    Route::apiResource('competences', CompetenceController::class)->middleware('IsAdmin');
+    Route::post('profile', [ProfileController::class, 'storeOrUpdate']);
+    Route::get('profile', [ProfileController::class, 'show']);
+    Route::delete('profile', [ProfileController::class, 'destroy']);
 });
-
-// Route::middleware('auth:sanctum')->group(function () {
-//     Route::resource('offres', OffreController::class);
-//     // Route::get('/offres/userOffres', [OffreController::class, 'indexForUser']); 
-//     Route::put('updateProfile', [AuthController::class, 'updateProfile']);
-//     Route::post('/offres/{id}/postuler', [OffreController::class, 'postuler']);
-
-
-// });
