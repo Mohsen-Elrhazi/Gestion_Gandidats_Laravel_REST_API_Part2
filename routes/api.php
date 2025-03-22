@@ -32,4 +32,5 @@ Route::middleware('auth:api')->group(function () {
     Route::post('profile', [ProfileController::class, 'storeOrUpdate']);
     Route::get('profile', [ProfileController::class, 'show']);
     Route::delete('profile', [ProfileController::class, 'destroy']);
+    Route::apiResource('offres', OffreController::class);
 });
