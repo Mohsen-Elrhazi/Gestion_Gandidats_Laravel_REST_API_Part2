@@ -106,4 +106,28 @@ class OffreController extends Controller
             "message" => "Offre supprimée avec succès",
             ],200);
     }
-}
+
+    public function activerOrDesactiver(string $id){
+        $offre = Offre::find($id);
+        
+        if($offre->status === 'active'){
+            $offre->status= 'inactive';
+            $offre->save();
+
+            return response()->json([
+                'status'=> 'success',
+                'message'=> 'Offre a ete desactiver',
+                "offre_status" => $offre
+            ],status: 200);
+            
+        }elseif( $offre->status === 'inactive'){
+            $offre->status= 'active';
+            $offre->save();
+
+            return response()->json([
+                'status'=> 'success',
+                'message'=> 'Offre a ete activer',
+                "offre_status" => $offre
+            ],200);
+        }        
+    }}
