@@ -3,87 +3,94 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\UpdateProfileRequest;
-use App\Models\Profile;
-use Auth;
-use Illuminate\Support\Facades\Hash;
-use Storage;
+use App\Models\User;
+use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
-    //! Method to update user profile
-    public function updateProfile(UpdateProfileRequest $request)
+    /**
+     * Display a listing of the resource.
+     */
+    public function index()
     {
-        try {
-            $user = Auth::user(); // Get the authenticated user
+        $users = User::whereHas('role', function ($query) {
+            $query->where('name', '!=', 'admin');
+        })->get();
 
-            // Use the policy to check if the user can update their profile
-            $this->authorize('update', $user);
+        // $users= User::where('role_id', '!=', 1)->get();
 
-            if (!Hash::check($request->password, $user->password)) {
-                return response()->json([
-                    "status" => 'error',
-                    "message" => "L'ancien mot de passe est incorrect",
-                ], 400);
-            }
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Liste des utilisateurs (hors administrateurs)',
+            'data' => $users,
+        ], 200);
+    }
 
-            if ($request->has('name')) {
-                $user->name = $request->name;
-            }
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request)
+    {
+        //
+    }
 
-            if ($request->has('email')) {
-                $user->email = $request->email;
-            }
+    /**
+     * Display the specified resource.
+     */
+    public function show(string $id)
+    {
+        $user = USer::find($id);
+        return response()->json([
+           'status' => 'success',
+            'message' => 'Details de l\'utilisateur',
+            'data'=> $user,
+        ],200);
+    }
 
-            if ($request->has('new_password')) {
-                $user->password = Hash::make($request->new_password);
-            }
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, string $id)
+    {
+        //
+    }
 
-            $user->update();
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(string $id)
+    {
+        $user= User::find($id);
+        $user->delete();
+        
+        return response()->json([
+            'status' =>'success',
+            'message' =>'user a ete supprime',
+        ],200);        
+    }
 
-            // Update or create profile
-            $profile = $user->profile ?: new Profile(['user_id' => $user->id]);
-
-            if ($request->has('telephone')) {
-                $profile->telephone = $request->telephone;
-            }
-
-            if ($request->has('adresse')) {
-                $profile->adresse = $request->adresse;
-            }
-
-            if ($request->has('date_naissance')) {
-                $profile->date_naissance = $request->date_naissance;
-            }
-
-            if ($request->hasFile('image')) {
-                // Delete old image if it exists
-                if ($profile->image && Storage::exists($profile->image)) {
-                    Storage::delete($profile->image);
-                }
-
-                // Store new image
-                $path = $request->file('image')->store('public/profiles');
-                $profile->image = $path;
-            }
-
-            $user->profile()->save($profile);
+    public function activerOrDesactiver(string $id){
+        $user = User::find($id);
+        
+        if($user->status === 'active'){
+            $user->status= 'inactive';
+            $user->save();
 
             return response()->json([
-                "status" => 'success',
-                "message" => 'Le profil a été modifié avec succès',
-                'data' => [
-                    "user" => $user,
-                    "profile" => $profile,
-                ],
-            ], 200);
+                'status'=> 'success',
+                'message'=> 'user a ete desactiver',
+                "user_status" => $user
+            ],200);
+            
+        }elseif( $user->status === 'inactive'){
+            $user->status= 'active';
+            $user->save();
 
-        } catch (\Exception $e) {
             return response()->json([
-                "status" => "error",
-                "message" => "Une erreur est survenue lors de la mise à jour du profil",
-                "error" => $e->getMessage(),
-            ], 500);
-        }
+                'status'=> 'success',
+                'message'=> 'user a ete activer',
+                "user_status" => $user
+            ],200);
+        }        
     }
 }
