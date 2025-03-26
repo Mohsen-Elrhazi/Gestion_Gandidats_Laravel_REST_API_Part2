@@ -62,10 +62,13 @@ class ProfileController extends Controller
         $profile->image = $path;
         }
 
-    
-        
-        $user->profile()->save($profile);
-        // $profile->save();
+        // $user->profile()->save($profile);
+        $profile->save();
+
+          // Attach competences si existent
+            if ($request->has('competences')) {
+                $user->competences()->attach($request->competences);
+            }
         
         return response()->json([
             "status" => "succes",
@@ -106,13 +109,7 @@ class ProfileController extends Controller
         ],200);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(ProfileRequest $request)
-    {
-        // 
-    }
+    
 
     /**
      * Remove the specified resource from storage.
