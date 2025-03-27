@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
+use App\Http\Resources\UserResource;
 use App\Models\Competence;
 use App\Models\Profile;
 use App\Models\User;
@@ -17,6 +18,40 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends Controller
 {
+    /**
+     * @OA\Post(
+     *     path="http://127.0.0.1:8000/api/register",
+     *     summary="Register a new user",
+     *     tags={"Auth"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"name", "email", "password", "role"},
+     *             @OA\Property(property="name", type="string", example="John Doe"),
+     *             @OA\Property(property="email", type="string", example="johndoe@example.com"),
+     *             @OA\Property(property="password", type="string", example="password123"),
+     *             @OA\Property(property="role", type="integer", example=2)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="User registered successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="message", type="string", example="Utilisateur enregistré avec succès"),
+     *             @OA\Property(property="data", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Error occurred",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Error message")
+     *         )
+     *     )
+     * )
+     */
     public function register(RegisterRequest $request)
     {
         try {
@@ -26,20 +61,7 @@ class AuthController extends Controller
             $user->password = Hash::make($request->password);
             $user->role_id = $request->role;
             $user->save();
-            
-            $user->profile()->create([]);
 
-            // Attach competences si existent
-            if ($request->has('competences')) {
-                $user->competences()->attach($request->competences);
-            }
-
-            $competences = $user->competences->map(function ($competence) {
-                return [
-                    'id' => $competence->id,
-                    'name' => $competence->name,
-                ];
-            });
 
             $token = JWTAuth::fromUser($user);
 
@@ -47,12 +69,7 @@ class AuthController extends Controller
                 "status" => 'success',
                 "message" => 'Utilisateur enregistré avec succès',
                 "data" => [
-                    "user" => [
-                        "id" => $user->id,
-                        "name" => $user->name,
-                        "email" => $user->email,
-                    ],
-                    "competences" => $competences,
+                    "user" => new UserResource($user),
                     'access_token' => $token,
                 ]
             ], 201);
@@ -65,6 +82,38 @@ class AuthController extends Controller
         }
     }
 
+    /**
+     * @OA\Post(
+     *     path="http://127.0.0.1:8000/api/login",
+     *     summary="Login a user",
+     *     tags={"Auth"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"email", "password"},
+     *             @OA\Property(property="email", type="string", example="johndoe@example.com"),
+     *             @OA\Property(property="password", type="string", example="password123")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Login successful",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="message", type="string", example="Authentification réussie"),
+     *             @OA\Property(property="data", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Authentication failed",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Échec de l'authentification")
+     *         )
+     *     )
+     * )
+     */
     public function login(LoginRequest $request)
     {
         try {
@@ -84,11 +133,7 @@ class AuthController extends Controller
                 "status" => 'success',
                 "message" => 'Authentification< réussie',
                 "data" => [
-                    "user" => [
-                        "id" => $user->id,
-                        "name" => $user->name,
-                        "email" => $user->email,
-                    ],
+                    "user" => new UserResource($user),
                     'access_token' => $newToken,
                 ]
             ], 200);
@@ -101,6 +146,30 @@ class AuthController extends Controller
         }
     }
 
+    /**
+     * @OA\Post(
+     *     path="http://127.0.0.1:8000/api/refresh",
+     *     summary="Refresh the JWT token",
+     *     tags={"Auth"},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Token refreshed successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="message", type="string", example="Token rafraîchi avec succès"),
+     *             @OA\Property(property="token", type="string", example="new.jwt.token")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Token refresh failed",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Impossible de rafraîchir le token")
+     *         )
+     *     )
+     * )
+     */
     public function refresh()
     {
         try {
@@ -121,6 +190,29 @@ class AuthController extends Controller
         }
     }
 
+    /**
+     * @OA\Post(
+     *     path="http://127.0.0.1:8000/api/logout",
+     *     summary="Logout a user",
+     *     tags={"Auth"},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Logout successful",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="message", type="string", example="Déconnexion réussie")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Error occurred",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Une erreur est survenue lors de la déconnexion")
+     *         )
+     *     )
+     * )
+     */
     public function logout()
     {
         try {

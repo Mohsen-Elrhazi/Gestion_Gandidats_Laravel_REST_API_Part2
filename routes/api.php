@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\API\AuthController;
+use App\Http\Controllers\API\CandidatureController;
 use App\Http\Controllers\API\CompetenceController;
 use App\Http\Controllers\API\OffreController;
 use App\Http\Controllers\API\ProfileController;
@@ -33,4 +34,9 @@ Route::middleware('auth:api')->group(function () {
     Route::get('profile', [ProfileController::class, 'show']);
     Route::delete('profile', [ProfileController::class, 'destroy']);
     Route::apiResource('offres', OffreController::class);
-});
+    Route::put('offres/changerStatus/{id}', [OffreController::class,'activerOrDesactiver'])->middleware('IsAdmin');
+    Route::get('users', [UserController::class,'index'])->middleware('IsAdmin');
+    Route::get('users/{id}', [UserController::class,'show'])->middleware('IsAdmin');
+    Route::put('users/changerStatus/{id}', [UserController::class,'activerOrDesactiver'])->middleware('IsAdmin');
+    Route::delete('users/destroy/{id}', [UserController::class,'destroy'])->middleware('IsAdmin');
+    Route::post('/postuler/offres/{id}', [CandidatureController::class, 'postuler']);});

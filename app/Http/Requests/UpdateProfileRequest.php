@@ -24,14 +24,14 @@ class UpdateProfileRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'string',
-            'email' => 'email:dns,rfc|unique:users,email,'.$this->user()->id,
-            'new_password' => 'min:6',
+            'name' => 'required',
+            'email' => 'required|email:dns,rfc|unique:users,email,'.$this->user()->id,
+            'new_password' => 'required|min:6',
             'password' => 'required',
-            'image' => 'image|mimes:jpeg,png,jpg|max:2048',
-            'telephone' => 'string|max:20',
-            'adresse' => 'string',
-            'date_naissance' => 'date'
+            'image' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+            'telephone' => 'required|string|max:20',
+            'adresse' => 'required|string',
+            'date_naissance' => 'required|date'
 
         ];
     }

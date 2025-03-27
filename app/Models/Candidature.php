@@ -9,7 +9,7 @@ class Candidature extends Model
 {
     use HasFactory;
     protected $fillable = [
-        'user_id',
+        'candidat_id',
         'offre_id',
         'cv_path',
         'date_candidature',
